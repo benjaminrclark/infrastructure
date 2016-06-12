@@ -1,0 +1,48 @@
+module "vpc" {
+    source = "../../module-vpc/infra"
+    aws_access_key =  "${var.aws_access_key}"
+    aws_secret_key = "${var.aws_secret_key}"
+    aws_region = "${var.aws_region}"
+    ssh_public_key = "${var.ssh_public_key}"
+    environment = "${var.environment}"
+}
+
+module "consul" {
+  source = "../../module-consul-nomad/infra"
+  aws_access_key =  "${var.aws_access_key}"
+  aws_secret_key = "${var.aws_secret_key}"
+  aws_region = "${var.aws_region}"
+  aws_availability_zones = "${var.aws_availability_zones}"
+  ami = "${var.consul_ami}"
+  instance_type = "${var.consul_instance_type}"
+  servers_count = "${var.consul_servers}"
+  key_name = "${module.vpc.key_name}"
+  subnet_ids = "${module.vpc.public_subnet_ids}" 
+  subnet_availability_zones = "${module.vpc.public_subnet_availability_zones}"
+  subnet_cidrs = "${module.vpc.public_subnet_cidrs}"
+  vpc_cidr = "${module.vpc.vpc_cidr}"
+  vpc_id = "${module.vpc.vpc_id}"
+  environment = "${var.environment}"
+}
+
+module "nomad_workers" {
+  source = "../../module-nomad-workers/infra"
+  aws_access_key =  "${var.aws_access_key}"
+  aws_secret_key = "${var.aws_secret_key}"
+  aws_region = "${var.aws_region}"
+  aws_availability_zones = "${var.aws_availability_zones}"
+  ami = "${var.nomad_worker_ami}"
+  instance_type = "${var.nomad_worker_instance_type}"
+  servers_count = "${var.nomad_workers}"
+  key_name = "${module.vpc.key_name}"
+  subnet_ids = "${module.vpc.public_subnet_ids}" 
+  subnet_availability_zones = "${module.vpc.public_subnet_availability_zones}"
+  subnet_cidrs = "${module.vpc.public_subnet_cidrs}"
+  vpc_cidr = "${module.vpc.vpc_cidr}"
+  vpc_id = "${module.vpc.vpc_id}"
+  environment = "${var.environment}"
+  route53_zone_id = "${var.route53_zone_id}"
+  route53_domain_name = "${var.route53_domain_name}"
+  consul_servers = "${module.consul.server_addresses}"
+  consul_security_group = "${module.consul.security_group_id}"
+}
